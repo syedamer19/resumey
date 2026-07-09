@@ -1,5 +1,5 @@
-streamlit==1.23.1
-pypdf<4.0.0
+streamlit>=1.20.0
+pypdf>=3.0.0
 requests
 python-dotenv
-markdown==3.4.4
+markdown>=3.0.0
