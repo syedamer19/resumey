@@ -465,8 +465,9 @@ with col2:
                     st.toast(f"✓ Uploaded text: {uploaded_file.name}")
                 except Exception as e:
                     st.error(f"Error reading file: {e}")
-                    
-    resume_text = st.text_area("Candidate Resume *", key="resume_text", height=200, placeholder="Paste candidate's current resume text here. If you uploaded a file above, its content will appear here automatically.")
+    else:
+        st.session_state["resume_text"] = ""
+        st.session_state["last_uploaded_name"] = None
 
 # Generate Action Button
 st.markdown("<br>", unsafe_allow_html=True)
@@ -604,9 +605,11 @@ def format_resume_markdown(markdown_content):
     return re.sub(exp_pattern, replace_exp, markdown_content)
 
 # Trigger Generation API Flow
+resume_content = st.session_state.get("resume_text", "")
+
 if generate_btn:
-    if not target_title or not target_company or not job_desc or not resume_text:
-        st.error("Please fill out all required fields: Target Job Title, Company Name, Job Description, and Resume Text.")
+    if not target_title or not target_company or not job_desc or not resume_content:
+        st.error("Please fill out all required fields: Target Job Title, Company Name, Job Description, and upload a Candidate Resume.")
     else:
         try:
             with st.spinner("TrueNorth Tailor is optimizing your resume for ATS & formatting the cover letter..."):
@@ -615,7 +618,7 @@ if generate_btn:
                     target_title,
                     target_company,
                     job_desc,
-                    resume_text
+                    resume_content
                 )
                 resume_output, letter_output = parse_outputs(raw_response)
                 
