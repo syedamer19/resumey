@@ -152,8 +152,8 @@ function toggleProviderFields(provider) {
     }
 }
 
-// Initialize Application
-document.addEventListener('DOMContentLoaded', () => {
+// Initialize Application Setup
+function init() {
     loadSettings();
     
     // Inject prompt code into the Prompt Explorer tab
@@ -208,7 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Tab switcher
+    // Tab switcher with layout checks
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -221,6 +221,31 @@ document.addEventListener('DOMContentLoaded', () => {
             pane.style.display = 'flex';
             
             state.activeTab = tabId;
+            
+            // Adjust placeholder & actions panel based on state
+            const placeholderView = document.getElementById('placeholder-view');
+            const outputActions = document.getElementById('output-actions');
+            
+            if (tabId === 'prompt-tab') {
+                placeholderView.style.display = 'none';
+                outputActions.style.display = 'none';
+            } else if (tabId === 'resume-tab') {
+                if (state.resumeContent) {
+                    placeholderView.style.display = 'none';
+                    outputActions.style.display = 'flex';
+                } else {
+                    placeholderView.style.display = 'flex';
+                    outputActions.style.display = 'none';
+                }
+            } else if (tabId === 'cover-letter-tab') {
+                if (state.coverLetterContent) {
+                    placeholderView.style.display = 'none';
+                    outputActions.style.display = 'flex';
+                } else {
+                    placeholderView.style.display = 'flex';
+                    outputActions.style.display = 'none';
+                }
+            }
         });
     });
 
@@ -334,7 +359,14 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('copy-btn').addEventListener('click', copyActiveDocument);
     document.getElementById('download-html-btn').addEventListener('click', downloadActiveAsHTML);
     document.getElementById('print-btn').addEventListener('click', printActiveDocument);
-});
+}
+
+// Fallback init trigger
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
 
 // Show/Hide Loading Overlay with status
 function updateLoadingState(show, step = '') {
@@ -398,18 +430,8 @@ async function startGeneration() {
         
         parseAndSetOutputs(responseText);
         
-        // Switch view from placeholder to actual outputs
-        document.getElementById('placeholder-view').style.display = 'none';
-        document.getElementById('resume-tab').style.display = 'flex';
-        document.getElementById('cover-letter-tab').style.display = 'none';
-        
-        // Force reset output tabs UI
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelector('[data-tab="resume-tab"]').classList.add('active');
-        state.activeTab = 'resume-tab';
-        
-        // Show actions panel
-        document.getElementById('output-actions').style.display = 'flex';
+        // Trigger the resume tab button click which handles all UI states (placeholder, tabs, actions panel)
+        document.querySelector('[data-tab="resume-tab"]').click();
         
         updateLoadingState(false);
     } catch (error) {
@@ -598,57 +620,28 @@ function renderDocuments() {
         gfm: true
     });
     
-    let renderedResume = marked.parse(state.resumeContent);
-    let renderedLetter = marked.parse(state.coverLetterContent);
+    // Format experience block headings using safe regex pre-processing on the markdown
+    const processedResumeMarkdown = formatResumeMarkdown(state.resumeContent);
     
-    // Post-process resume structure slightly to format experience rows beautifully in HTML
-    renderedResume = formatResumeHTML(renderedResume);
+    let renderedResume = marked.parse(processedResumeMarkdown);
+    let renderedLetter = marked.parse(state.coverLetterContent);
     
     resumePreview.innerHTML = renderedResume;
     letterPreview.innerHTML = renderedLetter;
 }
 
-// HTML formatter to style Job Experience dates and locations perfectly in preview (following CSS)
-function formatResumeHTML(html) {
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = html;
+// Regex formatter to style Job Experience dates and locations cleanly (runs on Markdown)
+function formatResumeMarkdown(markdown) {
+    if (!markdown) return '';
     
-    // Let's find experience headings. We expect something like:
+    // Pattern matches:
     // **Company Name** - City, Province
-    // *Job Title* | Date - Date
-    // We can search for paragraph nodes that look like dates, or search bold/italics
-    // For general robustness, let's look for common patterns or let CSS handle it.
-    // If we want to align company and date to the right, let's check for lines with '|' or dates.
-    const paragraphs = tempDiv.querySelectorAll('p');
-    paragraphs.forEach(p => {
-        const text = p.innerText;
-        // Check if this line looks like a job header: e.g. "Company - Location"
-        if (p.querySelector('strong') && text.includes(' - ')) {
-            // Check if next element is job title + date: e.g. "*Job Title* | Month Year"
-            const next = p.nextElementSibling;
-            if (next && next.tagName === 'P' && next.querySelector('em') && next.innerText.includes('|')) {
-                // We can structure them into experience rows
-                const companyStr = p.querySelector('strong').innerText;
-                const locationMatch = text.split(' - ')[1];
-                
-                const titleStr = next.querySelector('em').innerText;
-                const dateMatch = next.innerText.split('|')[1];
-                
-                const expHeader = document.createElement('div');
-                expHeader.className = 'exp-row';
-                expHeader.innerHTML = `<span>${companyStr}</span><span class="exp-location">${locationMatch || ''}</span>`;
-                
-                const titleHeader = document.createElement('div');
-                titleHeader.className = 'exp-title-row';
-                titleHeader.innerHTML = `<span>${titleStr}</span><span>${dateMatch ? dateMatch.trim() : ''}</span>`;
-                
-                p.replaceWith(expHeader);
-                next.replaceWith(titleHeader);
-            }
-        }
-    });
+    // *Job Title* | Month Year - Month Year
+    const expRegex = /\*\*([^\*]+)\*\*\s*-\s*([^\n\r]+)[\r\n]+\*([^\*]+)\*\s*\|\s*([^\n\r]+)/g;
     
-    return tempDiv.innerHTML;
+    return markdown.replace(expRegex, (match, company, location, title, dates) => {
+        return `<div class="exp-row"><span><strong>${company.trim()}</strong></span><span class="exp-location">${location.trim()}</span></div><div class="exp-title-row"><span><em>${title.trim()}</em></span><span>${dates.trim()}</span></div>`;
+    });
 }
 
 // Action: Toggle Editable Mode
