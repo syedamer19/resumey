@@ -1,0 +1,9 @@
+# API keys and local settings
+.env
+*.local
+local_settings.json
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
