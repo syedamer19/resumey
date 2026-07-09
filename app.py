@@ -8,7 +8,7 @@ from pypdf import PdfReader
 
 # Page Configuration
 st.set_page_config(
-    page_title="TrueNorth Tailor 🍁",
+    page_title="Resumey 🍁",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -371,7 +371,7 @@ st.markdown("""
 <div class="header-container">
     <div class="logo-badge">🍁</div>
     <div class="title-text">
-        <h1>TrueNorth Tailor</h1>
+        <h1>Resumey</h1>
         <p>Canadian Resume & Cover Letter Generator (ATS-Optimized)</p>
     </div>
 </div>
@@ -612,7 +612,7 @@ if generate_btn:
         st.error("Please fill out all required fields: Target Job Title, Company Name, Job Description, and upload a Candidate Resume.")
     else:
         try:
-            with st.spinner("TrueNorth Tailor is optimizing your resume for ATS & formatting the cover letter..."):
+            with st.spinner("Resumey is optimizing your resume for ATS & formatting the cover letter..."):
                 raw_response = call_llm_api(
                     st.session_state.api_provider,
                     target_title,
