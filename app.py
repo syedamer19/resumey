@@ -323,6 +323,46 @@ st.markdown("""
     .print-only-container {
         display: none;
     }
+    
+    /* Mobile responsive media query */
+    @media (max-width: 768px) {
+        .paper-wrapper {
+            padding: 0.5rem !important;
+            background-color: transparent !important;
+            border: none !important;
+        }
+        .document-paper {
+            padding: 2rem 1.5rem !important;
+            font-size: 9.5pt !important;
+            min-height: auto !important;
+            box-shadow: none !important;
+            border-radius: 8px !important;
+        }
+        .header-container {
+            flex-direction: column !important;
+            align-items: center !important;
+            text-align: center !important;
+            gap: 0.5rem !important;
+        }
+        .logo-badge {
+            font-size: 1.5rem !important;
+            padding: 0.3rem 0.6rem !important;
+        }
+        .title-text h1 {
+            font-size: 1.6rem !important;
+        }
+        /* Make experience header block items responsive (stack vertically if too long) */
+        .exp-row, .exp-title-row {
+            flex-direction: column !important;
+            gap: 2px !important;
+            margin-bottom: 6px !important;
+        }
+        .exp-location, .exp-title-row span:last-child {
+            font-size: 0.85em !important;
+            margin-left: 0 !important;
+            color: #6b7280 !important;
+        }
+    }
 </style>
 """, unsafe_allow_html=True)
 
