@@ -230,6 +230,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileStatus = document.getElementById('file-status');
     const resumeTextarea = document.getElementById('resume-text');
 
+    // Make drop zone clickable to select file
+    dropZone.addEventListener('click', (e) => {
+        if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'A' && e.target.id !== 'file-input') {
+            fileInput.click();
+        }
+    });
+
     ['dragenter', 'dragover'].forEach(eventName => {
         dropZone.addEventListener(eventName, (e) => {
             e.preventDefault();
@@ -269,9 +276,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 fileStatus.textContent = `✓ Uploaded ${file.name} successfully`;
                 fileStatus.style.color = 'var(--success)';
             } else if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
-                const text = await parsePDF(file);
-                resumeTextarea.value = text;
-                fileStatus.textContent = `✓ Uploaded and parsed ${file.name} (${pdfjsLib.numPages || ''} pages)`;
+                const result = await parsePDF(file);
+                resumeTextarea.value = result.text;
+                fileStatus.textContent = `✓ Uploaded and parsed ${file.name} (${result.numPages} pages)`;
                 fileStatus.style.color = 'var(--success)';
             } else {
                 fileStatus.textContent = '❌ Unsupported file type. Please upload a PDF or TXT file.';
@@ -309,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const pageText = textContent.items.map(item => item.str).join(' ');
                         fullText += pageText + '\n\n';
                     }
-                    resolve(fullText);
+                    resolve({ text: fullText, numPages: pdf.numPages });
                 } catch (err) {
                     reject(new Error('Failed to parse PDF. The file might be scanned or corrupted.'));
                 }
