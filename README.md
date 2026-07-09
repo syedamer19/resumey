@@ -1,6 +1,6 @@
-# TrueNorth Tailor 🍁
+# Resumey 🍁
 
-TrueNorth Tailor is a modern, client-side web application designed to customize resumes and craft cover letters optimized for the Canadian job market. Driven by a system prompt simulating a 30-year veteran HR Executive, it aligns candidate backgrounds with job descriptions while avoiding hallucinations.
+Resumey is a modern, client-side web application designed to customize resumes and craft cover letters optimized for the Canadian job market. Driven by a system prompt simulating a 30-year veteran HR Executive, it aligns candidate backgrounds with job descriptions while avoiding hallucinations.
 
 ## ✨ Features
 
