@@ -100,19 +100,27 @@ Sincerely,
 
 # Settings management (storing credentials locally on disk)
 def load_local_settings():
+    # Safely query st.secrets if it exists
+    def get_secret(key):
+        try:
+            return st.secrets.get(key, "")
+        except Exception:
+            return ""
+
     default_settings = {
-        "api_provider": "gemini-api",
-        "gemini_key": "",
-        "gemini_model": "gemini-3-flash-preview",
-        "ollama_host": "http://localhost:11434",
-        "ollama_model": "llama3",
-        "openai_url": "",
-        "openai_key": "",
-        "openai_model": ""
+        "api_provider": os.environ.get("API_PROVIDER", get_secret("api_provider") or "gemini-api"),
+        "gemini_key": os.environ.get("GEMINI_KEY", get_secret("gemini_key") or ""),
+        "gemini_model": os.environ.get("GEMINI_MODEL", get_secret("gemini_model") or "gemini-3-flash-preview"),
+        "ollama_host": os.environ.get("OLLAMA_HOST", get_secret("ollama_host") or "http://localhost:11434"),
+        "ollama_model": os.environ.get("OLLAMA_MODEL", get_secret("ollama_model") or "llama3"),
+        "openai_url": os.environ.get("OPENAI_URL", get_secret("openai_url") or ""),
+        "openai_key": os.environ.get("OPENAI_KEY", get_secret("openai_key") or ""),
+        "openai_model": os.environ.get("OPENAI_MODEL", get_secret("openai_model") or "")
     }
     if os.path.exists(SETTINGS_FILE):
         try:
             with open(SETTINGS_FILE, "r") as f:
+                # Merge loaded file settings, prioritising file settings
                 return {**default_settings, **json.load(f)}
         except Exception:
             pass
