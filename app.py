@@ -103,7 +103,7 @@ def load_local_settings():
     default_settings = {
         "api_provider": "gemini-api",
         "gemini_key": "",
-        "gemini_model": "gemini-2.5-flash",
+        "gemini_model": "gemini-3-flash-preview",
         "ollama_host": "http://localhost:11434",
         "ollama_model": "llama3",
         "openai_url": "",
@@ -398,7 +398,7 @@ with st.sidebar:
     if api_provider == "gemini-api":
         st.info("💡 You can get a free API Key instantly from [Google AI Studio](https://aistudio.google.com/) without needing a credit card.")
         st.text_input("Gemini API Key", type="password", key="gemini_key", placeholder="AIzaSy...")
-        st.selectbox("Model", options=["gemini-2.5-flash", "gemini-1.5-flash", "gemini-2.5-pro"], key="gemini_model")
+        st.text_input("Model Name", key="gemini_model", placeholder="e.g. gemini-3-flash-preview")
         
     elif api_provider == "ollama-local":
         st.info("💡 Ensure Ollama is running on your machine. You may need to run it with CORS enabled (`OLLAMA_ORIGINS=\"*\"`).")
