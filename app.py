@@ -676,7 +676,7 @@ def markdown_to_fpdf_html(markdown_text, doc_type="resume"):
             location = match.group(2).strip()
             title = match.group(3).strip()
             dates = match.group(4).strip()
-            return f'<table width="100%" border="0"><tr><td align="left"><b>{company}</b></td><td align="right"><i>{location}</i></td></tr><tr><td align="left"><i>{title}</i></td><td align="right">{dates}</td></tr></table>'
+            return f'<table width="100%" border="0"><tr><td width="70%" align="left"><b>{company}</b></td><td width="30%" align="right"><i>{location}</i></td></tr><tr><td align="left"><i>{title}</i></td><td align="right">{dates}</td></tr></table>'
         
         sanitized_md = re.sub(exp_pattern, replace_exp_with_table, sanitized_md)
         
@@ -692,6 +692,9 @@ def markdown_to_fpdf_html(markdown_text, doc_type="resume"):
     
     # 6. Center Contact Info (paragraphs containing pipe delimiter '|')
     html = re.sub(r'<p>([^<]*\|[^<]*)</p>', r'<p align="center">\1</p>', html)
+    
+    # 7. Add horizontal rules under all H2 headers for professional executive layout styling
+    html = re.sub(r'<h2>([^<]+)</h2>', r'<h2>\1</h2><hr>', html)
     
     return html
 
