@@ -752,8 +752,8 @@ def markdown_to_weasy_html(markdown_text, doc_type="resume"):
     # Center Contact Info (paragraphs containing pipe delimiter '|')
     body_html = re.sub(r'<p>([^<]*\|[^<]*)</p>', r'<p class="contact">\1</p>', body_html)
     
-    # Build full HTML page with embedded styling (Inter font for resume, Times for letter)
-    font_family = "'Inter', sans-serif" if doc_type == "resume" else "'Times New Roman', Times, serif"
+    # Build full HTML page with embedded styling (using Inter font for premium visual consistency)
+    font_family = "'Inter', sans-serif"
     
     html_page = f"""
     <!DOCTYPE html>
@@ -766,6 +766,12 @@ def markdown_to_weasy_html(markdown_text, doc_type="resume"):
             @page {{
                 size: letter;
                 margin: 18mm;
+                @bottom-right {{
+                    content: counter(page) " / " counter(pages);
+                    font-family: 'Inter', sans-serif;
+                    font-size: 8pt;
+                    color: #94a3b8;
+                }}
             }}
             body {{
                 font-family: {font_family};
@@ -776,22 +782,24 @@ def markdown_to_weasy_html(markdown_text, doc_type="resume"):
                 padding: 0;
             }}
             h1 {{
-                font-size: 18pt;
+                font-size: 22pt;
                 font-weight: 700;
                 color: #0f172a;
                 text-align: center;
                 margin-top: 0;
                 margin-bottom: 4px;
+                letter-spacing: -0.5px;
             }}
             h2 {{
                 font-size: 11pt;
                 font-weight: 600;
                 color: #0f172a;
                 text-transform: uppercase;
-                border-bottom: 0.5pt solid #cbd5e1;
-                padding-bottom: 2px;
-                margin-top: 14px;
+                border-bottom: 0.75pt solid #e2e8f0;
+                padding-bottom: 3px;
+                margin-top: 16px;
                 margin-bottom: 8px;
+                letter-spacing: 0.5px;
             }}
             p {{
                 margin-top: 0;
@@ -802,7 +810,8 @@ def markdown_to_weasy_html(markdown_text, doc_type="resume"):
                 text-align: center;
                 font-size: 9pt;
                 color: #64748b;
-                margin-bottom: 14px;
+                margin-bottom: 16px;
+                font-weight: 400;
             }}
             .exp-table {{
                 width: 100%;
@@ -835,20 +844,22 @@ def markdown_to_weasy_html(markdown_text, doc_type="resume"):
             .exp-table .title {{
                 font-style: italic;
                 font-size: 9.5pt;
-                color: #1e293b;
+                color: #334155;
             }}
             .exp-table .dates {{
                 color: #64748b;
                 font-size: 9.5pt;
             }}
             ul {{
-                margin-top: 0;
-                margin-bottom: 8px;
-                padding-left: 20px;
+                margin-top: 4px;
+                margin-bottom: 6px;
+                padding-left: 18px;
             }}
             li {{
                 margin-bottom: 3px;
                 text-align: justify;
+                font-size: 9.5pt;
+                color: #334155;
             }}
             strong {{
                 color: #0f172a;
