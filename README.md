@@ -1,3 +1,13 @@
+---
+title: Resumey
+emoji: 🍁
+colorFrom: red
+colorTo: red
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # Resumey 🍁
 
 Resumey is a modern, Python Streamlit web application designed to customize resumes and craft cover letters optimized for the Canadian job market. Driven by a system prompt simulating a 30-year veteran HR Executive, it aligns candidate backgrounds with job descriptions while avoiding hallucinations.
