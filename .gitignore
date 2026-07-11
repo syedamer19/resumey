@@ -7,3 +7,8 @@ local_settings.json
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Python virtual environment and caches
+.venv/
+__pycache__/
+*.py[cod]
