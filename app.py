@@ -1034,27 +1034,10 @@ if st.session_state.get("tailored_resume"):
             else:
                 st.error("Failed to generate PDF")
 
-        # White paper render preview
+        # Render the LaTeX-styled WeasyPrint HTML in a high-fidelity iframe preview
         st.markdown("<br>", unsafe_allow_html=True)
-        processed_resume_md = format_resume_markdown(resume_md)
-        resume_html = markdown.markdown(processed_resume_md)
-        
-        st.markdown(f"""
-        <div class="paper-wrapper">
-            <div class="document-paper resume-style">
-                {resume_html}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # Render a hidden print-only block that window.print() will display
-        st.markdown(f"""
-        <div class="print-only-container">
-            <div class="document-paper resume-style" style="box-shadow: none !important; padding: 0 !important;">
-                {resume_html}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        resume_html_page = markdown_to_weasy_html(resume_md, doc_type="resume")
+        st.components.v1.html(resume_html_page, height=900, scrolling=True)
 
     with tab2:
         letter_md = st.session_state["tailored_letter"]
@@ -1093,25 +1076,10 @@ if st.session_state.get("tailored_resume"):
             else:
                 st.error("Failed to generate PDF")
 
+        # Render the LaTeX-styled WeasyPrint HTML in a high-fidelity iframe preview
         st.markdown("<br>", unsafe_allow_html=True)
-        letter_html = markdown.markdown(letter_md)
-        
-        st.markdown(f"""
-        <div class="paper-wrapper">
-            <div class="document-paper letter-paper">
-                {letter_html}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # Render a hidden print-only block that window.print() will display
-        st.markdown(f"""
-        <div class="print-only-container">
-            <div class="document-paper letter-paper" style="box-shadow: none !important; padding: 0 !important;">
-                {letter_html}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        letter_html_page = markdown_to_weasy_html(letter_md, doc_type="letter")
+        st.components.v1.html(letter_html_page, height=900, scrolling=True)
 
     with tab3:
         st.info("💡 Below is the exact prompt running behind the scenes. It sets the rules for ATS optimization, Canadian formatting, and strict truth preservation.")
