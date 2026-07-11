@@ -673,37 +673,8 @@ if st.session_state.get("tailored_resume"):
                 use_container_width=True
             )
         with act_col3:
-            st.components.v1.html(
-                """
-                <button onclick="window.parent.print()" style="
-                    width: 100%; 
-                    height: 35px; 
-                    border-radius: 8px; 
-                    border: 1px solid #0ea5e9; 
-                    background-color: transparent; 
-                    color: #0ea5e9; 
-                    font-weight: 600; 
-                    cursor: pointer;
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-                    font-size: 14px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    box-sizing: border-box;
-                ">
-                    🖨️ Print / Save as PDF
-                </button>
-                <style>
-                    body {
-                        margin: 0;
-                        padding: 0;
-                        overflow: hidden;
-                        background: transparent;
-                    }
-                </style>
-                """,
-                height=40
-            )
+            if st.button("🖨️ Print / Save as PDF", key="btn_print_resume", use_container_width=True):
+                st.session_state["trigger_print"] = True
 
         # White paper render preview
         st.markdown("<br>", unsafe_allow_html=True)
@@ -751,37 +722,8 @@ if st.session_state.get("tailored_resume"):
                 use_container_width=True
             )
         with act_col3:
-            st.components.v1.html(
-                """
-                <button onclick="window.parent.print()" style="
-                    width: 100%; 
-                    height: 35px; 
-                    border-radius: 8px; 
-                    border: 1px solid #0ea5e9; 
-                    background-color: transparent; 
-                    color: #0ea5e9; 
-                    font-weight: 600; 
-                    cursor: pointer;
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-                    font-size: 14px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    box-sizing: border-box;
-                ">
-                    🖨️ Print / Save as PDF
-                </button>
-                <style>
-                    body {
-                        margin: 0;
-                        padding: 0;
-                        overflow: hidden;
-                        background: transparent;
-                    }
-                </style>
-                """,
-                height=40
-            )
+            if st.button("🖨️ Print / Save as PDF", key="btn_print_letter", use_container_width=True):
+                st.session_state["trigger_print"] = True
 
         st.markdown("<br>", unsafe_allow_html=True)
         letter_html = markdown.markdown(letter_md)
@@ -809,3 +751,16 @@ if st.session_state.get("tailored_resume"):
 else:
     st.markdown("---")
     st.info("💡 Fill out the details in sections 1 and 2, then click Generate. Your tailored documents will appear here in clean print-ready white sheets.")
+
+# Print trigger script injection (hidden)
+if st.session_state.get("trigger_print"):
+    st.components.v1.html(
+        """
+        <script>
+            window.parent.print();
+        </script>
+        """,
+        height=0,
+        width=0
+    )
+    st.session_state["trigger_print"] = False
