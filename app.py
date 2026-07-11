@@ -669,14 +669,37 @@ if st.session_state.get("tailored_resume"):
                 use_container_width=True
             )
         with act_col3:
-            # Inline JS trick for a browser native print trigger
-            st.markdown("""
-            <div class="print-btn-wrapper">
-                <button onclick="window.print()" class="stButton" style="width: 100%; height: 35px; border-radius: 8px; border: 1px solid #0ea5e9; background-color: transparent; color: #0ea5e9; font-weight: 600; cursor: pointer;">
+            st.components.v1.html(
+                """
+                <button onclick="window.parent.print()" style="
+                    width: 100%; 
+                    height: 35px; 
+                    border-radius: 8px; 
+                    border: 1px solid #0ea5e9; 
+                    background-color: transparent; 
+                    color: #0ea5e9; 
+                    font-weight: 600; 
+                    cursor: pointer;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+                    font-size: 14px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-sizing: border-box;
+                ">
                     🖨️ Print / Save as PDF
                 </button>
-            </div>
-            """, unsafe_allow_html=True)
+                <style>
+                    body {
+                        margin: 0;
+                        padding: 0;
+                        overflow: hidden;
+                        background: transparent;
+                    }
+                </style>
+                """,
+                height=40
+            )
 
         # White paper render preview
         st.markdown("<br>", unsafe_allow_html=True)
@@ -724,13 +747,37 @@ if st.session_state.get("tailored_resume"):
                 use_container_width=True
             )
         with act_col3:
-            st.markdown("""
-            <div class="print-btn-wrapper">
-                <button onclick="window.print()" class="stButton" style="width: 100%; height: 35px; border-radius: 8px; border: 1px solid #0ea5e9; background-color: transparent; color: #0ea5e9; font-weight: 600; cursor: pointer;">
+            st.components.v1.html(
+                """
+                <button onclick="window.parent.print()" style="
+                    width: 100%; 
+                    height: 35px; 
+                    border-radius: 8px; 
+                    border: 1px solid #0ea5e9; 
+                    background-color: transparent; 
+                    color: #0ea5e9; 
+                    font-weight: 600; 
+                    cursor: pointer;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+                    font-size: 14px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-sizing: border-box;
+                ">
                     🖨️ Print / Save as PDF
                 </button>
-            </div>
-            """, unsafe_allow_html=True)
+                <style>
+                    body {
+                        margin: 0;
+                        padding: 0;
+                        overflow: hidden;
+                        background: transparent;
+                    }
+                </style>
+                """,
+                height=40
+            )
 
         st.markdown("<br>", unsafe_allow_html=True)
         letter_html = markdown.markdown(letter_md)
