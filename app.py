@@ -3,8 +3,10 @@ import requests
 import json
 import os
 import re
+import io
 import markdown
 from pypdf import PdfReader
+from fpdf import FPDF
 
 # Page Configuration
 st.set_page_config(
@@ -629,6 +631,118 @@ def format_resume_markdown(markdown_content):
         
     return re.sub(exp_pattern, replace_exp, markdown_content)
 
+# PDF Generation Utilities using fpdf2
+def print_formatted_line(pdf, text, is_bullet=False):
+    if is_bullet:
+        pdf.set_font("helvetica", style="", size=10.5)
+        pdf.write(5.5, " \u2022  ")
+    
+    tokens = re.split(r'(\*\*.*?\*\*|\*.*?\*)', text)
+    for token in tokens:
+        if not token:
+            continue
+        if token.startswith("**") and token.endswith("**"):
+            fragment = token[2:-2]
+            pdf.set_font("helvetica", style="B", size=10.5)
+            pdf.write(5.5, fragment)
+        elif token.startswith("*") and token.endswith("*"):
+            fragment = token[1:-1]
+            pdf.set_font("helvetica", style="I", size=10.5)
+            pdf.write(5.5, fragment)
+        else:
+            pdf.set_font("helvetica", style="", size=10.5)
+            pdf.write(5.5, token)
+    pdf.ln(5.5)
+
+def print_experience_header(pdf, line):
+    company_match = re.match(r'^\*\*([^\*]+)\*\*\s*-\s*(.+)$', line)
+    title_match = re.match(r'^\*([^\*]+)\*\s*\|\s*(.+)$', line)
+    
+    if company_match:
+        company = company_match.group(1).strip()
+        location = company_match.group(2).strip()
+        pdf.set_font("helvetica", style="B", size=10.5)
+        pdf.write(5.5, company)
+        
+        pdf.set_font("helvetica", style="I", size=10.5)
+        loc_width = pdf.get_string_width(location)
+        pdf.set_x(215.9 - 18 - loc_width)
+        pdf.write(5.5, location)
+        pdf.ln(5.5)
+        return True
+    elif title_match:
+        title = title_match.group(1).strip()
+        dates = title_match.group(2).strip()
+        pdf.set_font("helvetica", style="I", size=10.5)
+        pdf.write(5.5, title)
+        
+        pdf.set_font("helvetica", style="", size=10.5)
+        dates_width = pdf.get_string_width(dates)
+        pdf.set_x(215.9 - 18 - dates_width)
+        pdf.write(5.5, dates)
+        pdf.ln(5.5)
+        return True
+    return False
+
+def generate_pdf_from_markdown(markdown_text, doc_type="resume"):
+    pdf = FPDF(orientation="P", unit="mm", format="letter")
+    pdf.set_margins(18, 18, 18)
+    pdf.add_page()
+    pdf.set_auto_page_break(auto=True, margin=18)
+    
+    lines = markdown_text.split("\n")
+    
+    for line in lines:
+        line = line.strip()
+        if not line:
+            pdf.ln(2)
+            continue
+            
+        # Title
+        if line.startswith("# "):
+            title = line[2:].strip()
+            pdf.set_font("helvetica", style="B", size=18)
+            pdf.cell(0, 10, txt=title, ln=True, align="C")
+            pdf.set_font("helvetica", style="", size=10.5)
+            
+        # Section Header
+        elif line.startswith("## "):
+            section = line[3:].strip()
+            pdf.ln(2)
+            pdf.set_font("helvetica", style="B", size=11.5)
+            pdf.cell(0, 6, txt=section.upper(), ln=True, align="L")
+            # Bottom border line
+            pdf.set_line_width(0.3)
+            current_y = pdf.get_y()
+            pdf.line(18, current_y, 215.9 - 18, current_y)
+            pdf.ln(2)
+            pdf.set_font("helvetica", style="", size=10.5)
+            
+        # Contact Header (contains | and near top of page)
+        elif "|" in line and pdf.get_y() < 60:
+            clean_line = line.replace("**", "").replace("*", "")
+            pdf.set_font("helvetica", style="", size=9.5)
+            pdf.cell(0, 5.5, txt=clean_line, ln=True, align="C")
+            pdf.set_font("helvetica", style="", size=10.5)
+            
+        # Bullet point
+        elif line.startswith("- ") or line.startswith("* "):
+            bullet_text = line[2:].strip()
+            print_formatted_line(pdf, bullet_text, is_bullet=True)
+            
+        # Professional Experience Headers
+        else:
+            if doc_type == "resume" and print_experience_header(pdf, line):
+                continue
+            print_formatted_line(pdf, line)
+            
+    try:
+        pdf_bytes = pdf.output()
+        return pdf_bytes
+    except Exception as e:
+        st.error(f"Error compiling PDF: {e}")
+        return None
+
 # Trigger Generation API Flow
 resume_content = st.session_state.get("resume_text", "")
 
@@ -664,8 +778,8 @@ if st.session_state.get("tailored_resume"):
     with tab1:
         resume_md = st.session_state["tailored_resume"]
         
-        # Download and copy actions
-        act_col1, act_col2, act_col3 = st.columns([1, 1, 3])
+        # Download actions
+        act_col1, act_col2, act_col3 = st.columns(3)
         with act_col1:
             st.download_button(
                 label="📥 Download Markdown",
@@ -686,8 +800,18 @@ if st.session_state.get("tailored_resume"):
                 use_container_width=True
             )
         with act_col3:
-            if st.button("🖨️ Print / Save as PDF", key="btn_print_resume", use_container_width=True):
-                st.session_state["trigger_print"] = True
+            resume_pdf_data = generate_pdf_from_markdown(resume_md, doc_type="resume")
+            if resume_pdf_data:
+                st.download_button(
+                    label="📥 Download PDF",
+                    data=bytes(resume_pdf_data),
+                    file_name="tailored_resume.pdf",
+                    mime="application/pdf",
+                    key="download_resume_pdf",
+                    use_container_width=True
+                )
+            else:
+                st.error("Failed to generate PDF")
 
         # White paper render preview
         st.markdown("<br>", unsafe_allow_html=True)
@@ -714,7 +838,7 @@ if st.session_state.get("tailored_resume"):
     with tab2:
         letter_md = st.session_state["tailored_letter"]
         
-        act_col1, act_col2, act_col3 = st.columns([1, 1, 3])
+        act_col1, act_col2, act_col3 = st.columns(3)
         with act_col1:
             st.download_button(
                 label="📥 Download Markdown",
@@ -735,8 +859,18 @@ if st.session_state.get("tailored_resume"):
                 use_container_width=True
             )
         with act_col3:
-            if st.button("🖨️ Print / Save as PDF", key="btn_print_letter", use_container_width=True):
-                st.session_state["trigger_print"] = True
+            letter_pdf_data = generate_pdf_from_markdown(letter_md, doc_type="letter")
+            if letter_pdf_data:
+                st.download_button(
+                    label="📥 Download PDF",
+                    data=bytes(letter_pdf_data),
+                    file_name="tailored_cover_letter.pdf",
+                    mime="application/pdf",
+                    key="download_letter_pdf",
+                    use_container_width=True
+                )
+            else:
+                st.error("Failed to generate PDF")
 
         st.markdown("<br>", unsafe_allow_html=True)
         letter_html = markdown.markdown(letter_md)
@@ -764,16 +898,3 @@ if st.session_state.get("tailored_resume"):
 else:
     st.markdown("---")
     st.info("💡 Fill out the details in sections 1 and 2, then click Generate. Your tailored documents will appear here in clean print-ready white sheets.")
-
-# Print trigger script injection (hidden)
-if st.session_state.get("trigger_print"):
-    st.components.v1.html(
-        """
-        <script>
-            window.parent.print();
-        </script>
-        """,
-        height=0,
-        width=0
-    )
-    st.session_state["trigger_print"] = False

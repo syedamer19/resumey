@@ -3,3 +3,4 @@ pypdf>=3.0.0
 requests
 python-dotenv
 markdown>=3.0.0
+fpdf2==2.7.9
