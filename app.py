@@ -680,7 +680,7 @@ def markdown_to_fpdf_html(markdown_text, doc_type="resume"):
             location = match.group(2).strip()
             title = match.group(3).strip()
             dates = match.group(4).strip()
-            return f'<table width="100%" border="0"><tr><td width="70%" align="left"><b>{company}</b></td><td width="30%" align="right"><i>{location}</i></td></tr><tr><td align="left"><i>{title}</i></td><td align="right">{dates}</td></tr></table>'
+            return f'<table width="100%" border="0"><tr><td width="70%" align="left"><b>{company}</b></td><td width="30%" align="right"><font color="#64748b"><i>{location}</i></font></td></tr><tr><td align="left"><i>{title}</i></td><td align="right"><font color="#64748b">{dates}</font></td></tr></table>'
         
         sanitized_md = re.sub(exp_pattern, replace_exp_with_table, sanitized_md)
         
@@ -709,14 +709,15 @@ def generate_pdf_from_markdown(markdown_text, doc_type="resume"):
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=18)
     
-    # Set default body font
+    # Set default body font & color to slate-800 (#1e293b) for modern professional look
+    pdf.set_text_color(30, 41, 59)
     pdf.set_font(font_family, size=10.5)
     
-    # Set custom tag styles for headings
+    # Set custom tag styles for headings with dark slate-900 color (#0f172a)
     my_styles = {
-        "h1": FontFace(family=font_family, size_pt=18, emphasis="B"),
-        "h2": FontFace(family=font_family, size_pt=11.5, emphasis="B"),
-        "h3": FontFace(family=font_family, size_pt=10.5, emphasis="B")
+        "h1": FontFace(family=font_family, size_pt=18, emphasis="B", color="#0f172a"),
+        "h2": FontFace(family=font_family, size_pt=11.5, emphasis="B", color="#0f172a"),
+        "h3": FontFace(family=font_family, size_pt=10.5, emphasis="B", color="#0f172a")
     }
     
     # Convert markdown to PDF-compatible HTML
@@ -736,10 +737,10 @@ def generate_pdf_from_markdown(markdown_text, doc_type="resume"):
                 # Write heading
                 pdf.write_html(f"<h2>{heading_text}</h2>", tag_styles=my_styles)
                 
-                # Draw a clean horizontal line under heading
+                # Draw a clean horizontal line under heading using slate-200 color
                 current_y = pdf.get_y()
-                pdf.set_line_width(0.2)
-                pdf.set_draw_color(180, 180, 180)
+                pdf.set_line_width(0.25)
+                pdf.set_draw_color(226, 232, 240)
                 pdf.line(18, current_y + 1, 215.9 - 18, current_y + 1)
                 
                 # Advance cursor past line
