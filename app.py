@@ -4,6 +4,7 @@ import json
 import os
 import re
 import io
+import unicodedata
 import markdown
 from pypdf import PdfReader
 from fpdf import FPDF
@@ -632,10 +633,37 @@ def format_resume_markdown(markdown_content):
     return re.sub(exp_pattern, replace_exp, markdown_content)
 
 # PDF Generation Utilities using fpdf2
+def sanitize_text_for_pdf(text):
+    if not text:
+        return ""
+    
+    # Map common non-latin-1 unicode characters to ascii equivalents
+    replacements = {
+        "\u201c": '"',  # Left double quote
+        "\u201d": '"',  # Right double quote
+        "\u2018": "'",  # Left single quote
+        "\u2019": "'",  # Right single quote
+        "\u2013": "-",  # En-dash
+        "\u2014": "-",  # Em-dash
+        "\u2122": "TM", # Trademark
+        "\u00ae": "(R)",# Registered Trademark
+        "\u00a9": "(C)",# Copyright
+        "\u2026": "...",# Ellipsis
+        "\u00a0": " ",  # Non-breaking space
+    }
+    
+    for uni_char, ascii_char in replacements.items():
+        text = text.replace(uni_char, ascii_char)
+        
+    # Normalize accented characters and remove remaining non-ascii characters
+    normalized = unicodedata.normalize('NFKD', text)
+    encoded = normalized.encode('ascii', 'ignore')
+    return encoded.decode('ascii')
+
 def print_formatted_line(pdf, text, is_bullet=False):
     if is_bullet:
         pdf.set_font("helvetica", style="", size=10.5)
-        pdf.write(5.5, " \u2022  ")
+        pdf.write(5.5, " \xb7  ")
     
     tokens = re.split(r'(\*\*.*?\*\*|\*.*?\*)', text)
     for token in tokens:
@@ -685,6 +713,9 @@ def print_experience_header(pdf, line):
     return False
 
 def generate_pdf_from_markdown(markdown_text, doc_type="resume"):
+    # Sanitize markdown input first to prevent FPDFUnicodeEncodingException
+    markdown_text = sanitize_text_for_pdf(markdown_text)
+    
     pdf = FPDF(orientation="P", unit="mm", format="letter")
     pdf.set_margins(18, 18, 18)
     pdf.add_page()
