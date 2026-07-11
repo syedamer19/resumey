@@ -307,28 +307,41 @@ st.markdown("""
     
     /* Javascript-free Print media configurations */
     @media print {
-        /* Hide all page content by default during print */
-        html, body, [data-testid="stAppViewContainer"], [data-testid="stVerticalBlock"], .main {
-            visibility: hidden !important;
-            background: white !important;
+        /* Hide all Streamlit framework elements and input controls */
+        [data-testid="stSidebar"],
+        [data-testid="stHeader"],
+        [data-testid="stToolbar"],
+        header,
+        .header-container,
+        [data-testid="stHorizontalBlock"],
+        .stButton,
+        button,
+        [data-baseweb="tab-list"],
+        .stAlert,
+        hr,
+        h3,
+        .paper-wrapper {
+            display: none !important;
         }
         
-        /* Show only the print-only container and its child contents */
-        .print-only-container, .print-only-container * {
-            visibility: visible !important;
-        }
-        
-        /* Position the print container at the top left of the printed page */
+        /* Show the print-only document container */
         .print-only-container {
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 100% !important;
             display: block !important;
-            background: white !important;
-            color: black !important;
+            width: 100% !important;
             padding: 0 !important;
             margin: 0 !important;
+            background: white !important;
+            color: black !important;
+        }
+        
+        /* Ensure the document paper takes full width and has no shadows */
+        .print-only-container .document-paper {
+            box-shadow: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            min-height: auto !important;
         }
     }
     
