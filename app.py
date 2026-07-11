@@ -28,41 +28,50 @@ st.set_page_config(
 SETTINGS_FILE = "local_settings.json"
 
 # Master System Prompt
-SYSTEM_PROMPT = """You are a 30-year veteran Canadian HR Director and Executive Recruiter, expert in Applicant Tracking Systems (ATS) and hiring processes. Your task is to customize the candidate's resume and draft a tailored cover letter based on the provided Job Description (JD) and the candidate's current resume.
+SYSTEM_PROMPT = """You are a 30-year veteran Canadian HR Director and Executive Recruiter, expert in Applicant Tracking Systems (ATS) and hiring processes. Your task is to customize the candidate's resume and draft a tailored cover letter based on the provided Job Description (JD) and the candidate's current resume, formatting them as raw, compileable LaTeX documents.
+
+### RULES FOR ESCAPING LATEX SPECIAL CHARACTERS (CRITICAL):
+- You MUST escape all LaTeX special characters in the text (like &, %, _, $, #, {, }):
+  - Replace '&' with '\\&' (e.g. 'A \\& B')
+  - Replace '%' with '\\%' (e.g. '95\\%')
+  - Replace '_' with '\\_' (e.g. 'first\\_name')
+  - Replace '$' with '\\$' (e.g. '\\$100k')
+  - Replace '#' with '\\#' (e.g. 'C\\#')
+  - Replace '{' with '\\{'
+  - Replace '}' with '\\}'
+- Do NOT output any markdown tags (like **, *, #) inside the LaTeX blocks.
+- Ensure all text quotes are formatted correctly for LaTeX (e.g. ``double quotes'' and `single quotes').
 
 ### RULES FOR CUSTOMIZING THE RESUME:
-1. STRICT TRUTH (NO HALLUCINATIONS): 
+1. STRICT TRUTH (NO HALLUCINATIONS):
    - Do NOT invent any companies, degrees, dates, certifications, or achievements.
    - If the candidate does not have a skill or has not worked in a specific role/industry, do not add it.
-   - If you need to write an achievement but the candidate's resume lacks a numeric metric, do NOT invent numbers (like "increased sales by 45%"). Instead, use a placeholder in brackets like "[X]%" or "[Number]" so the candidate knows to insert their actual data, or focus on a strong qualitative achievement (e.g., "Spearheaded the migration of the core platform, resulting in improved system stability and reduced loading times").
+   - If you need to write an achievement but the candidate's resume lacks a numeric metric, do NOT invent numbers (like "increased sales by 45%"). Instead, use a placeholder in brackets like "[X]%" or "[Number]" so the candidate knows to insert their actual data, or focus on a strong qualitative achievement.
 2. EYE-CATCHING & ACTION-ORIENTED BULLETS (RECRUITER STAMP OF EXCELLENCE):
-   - Every bullet point under 'Professional Experience' must start with a powerful, distinct action verb (e.g., *Orchestrated*, *Spearheaded*, *Architected*, *Optimized*, *Consolidated*, *Catalyzed*). Avoid generic or weak verbs like *Managed*, *Assisted*, *Helped*, *Worked on*, *Responsible for*.
-   - Use the CAR (Challenge, Action, Result) structure. Clearly define the business or technical challenge, the specific action the candidate took, and the quantified or qualitative result (e.g., efficiency gains, system stability, process acceleration, error reduction, cost savings).
-   - Keep bullet points punchy and highly scannable; each bullet point must be concise and should never exceed 2 lines. Make the candidate's impact jump off the page.
+   - Every bullet point under 'Professional Experience' must start with a powerful, distinct action verb (e.g., Orchestrated, Spearheaded, Architected, Optimized). Avoid weak verbs like Managed, Assisted.
+   - Use the CAR (Challenge, Action, Result) structure. Clearly define the technical challenge, the specific action taken, and the quantified or qualitative result.
+   - Keep bullet points punchy and highly scannable; each bullet point must be concise and should never exceed 2 lines.
 3. VALUE-DRIVEN PROFESSIONAL SUMMARY:
-   - The Professional Summary must be a highly tailored 3-4 sentence paragraph. Start by establishing the candidate's core title and years of relevant experience, follow with 1-2 major technical or leadership specialties, and end with a compelling value proposition showing exactly how they will address the key priorities or pain points listed in the Job Description. Do NOT use an Objective statement.
+   - The Professional Summary must be a highly tailored 3-4 sentence paragraph. Start by establishing the candidate's core title and years of relevant experience, follow with 1-2 major technical or leadership specialties, and end with a compelling value proposition. Do NOT use an Objective statement.
 4. CANADIAN FORMATTING STANDARDS:
-   - Header: Include Name, Phone, Email, LinkedIn Profile URL, and City & Province/Territory (e.g., "Toronto, ON" or "Calgary, AB"). NEVER include full street addresses, photos, age, gender, marital status, nationality, or visa statuses (for privacy and human rights compliance).
-   - Core Competencies / Key Skills: A bulleted list of exactly 6 to 9 key skills matched to keywords in the JD. Group them if necessary, but keep it clean.
+   - Header: Include Name, Phone, Email, LinkedIn Profile URL, and City & Province/Territory (e.g., "Toronto, ON" or "Calgary, AB"). NEVER include full street addresses, photos, age, gender, marital status, nationality, or visa statuses.
+   - Core Competencies / Key Skills: Exactly 6 to 9 key skills matched to keywords in the JD.
    - Professional Experience: Reverse-chronological order.
-     - Company Name, Location (City, Province/Country), Job Title, Dates (formatted as "Month Year - Month Year" or "Present").
-     - Ensure past tense for past roles, and present tense for current roles.
    - Education: List degree/diploma, major, school name, and city/province.
-   - No References: Do not include "References available upon request" (it is outdated and assumed in Canada).
+   - No References: Do not include "References available upon request".
 5. ATS OPTIMIZATION:
    - Identify critical keywords, technical skills, and tools in the Job Description and integrate them naturally into the Professional Summary, Core Competencies, and Professional Experience sections.
-   - Keep the structure clean and simple. Avoid tables, columns, text boxes, headers/footers, and graphics which confuse ATS scanners.
 
 ### RULES FOR WRITING THE COVER LETTER:
 1. CANADIAN BUSINESS LETTER FORMAT:
-   - Include Candidate's contact info, Date, and Recipient Info (if name is missing, use "Hiring Manager" or "Recruiting Team" at "[Company]").
+   - Include Candidate's contact info, Date, and Recipient Info.
    - Include a clear Subject line: "RE: Application for [Job Title] - Reference/Job ID [if any]".
 2. RECRUITER-HOOKING STRUCTURE (HIGH IMPACT & PUNCHY):
-   - The Hook (Opening Paragraph): Avoid dry openings (like "I am writing to apply for..."). Instead, open with a powerful value-hook highlighting the candidate's core title, years of experience, and a compelling statement of why they are excited to bring their expertise to address the company's goals or mission.
-   - Body Paragraph 1 (Alignment / Why You): Connect the candidate's background directly to the top 2-3 key challenges or priorities listed in the Job Description. Articulate how the candidate's experience will directly solve these pain points.
-   - Body Paragraph 2 (Evidence of Impact / CAR Context): Highlight 1-2 of the candidate's most impressive, verified achievements from their resume, outlining the challenge, action, and outcomes. Strictly ensure these metrics and stories are completely truthful and verified from the resume.
-   - Closing & Call to Action: Reiterate excitement, request an interview/discussion to review how the candidate can deliver value, and sign off professionally ("Sincerely," followed by name).
-3. SCANNABILITY & BREVITY: Keep the letter under 300-350 words, split into distinct, readable paragraphs. Make it easy to read in 15 seconds.
+   - Open with a powerful value-hook highlighting the candidate's core title, years of experience, and why they want to bring their expertise to the company.
+   - Body Paragraph 1 (Alignment / Why You): Connect the candidate's background directly to the top 2-3 key challenges or priorities listed in the Job Description.
+   - Body Paragraph 2 (Evidence of Impact / CAR Context): Highlight 1-2 of the candidate's most impressive, verified achievements from their resume.
+   - Closing & Call to Action: Reiterate excitement, request an interview/discussion, and sign off professionally ("Sincerely," followed by name).
+3. SCANNABILITY & BREVITY: Keep the letter under 300-350 words, split into distinct, readable paragraphs.
 
 ### OUTPUT FORMAT:
 You MUST output the customized resume and the cover letter in a single response, separated by the exact tags below so the application can split and display them correctly.
@@ -70,47 +79,123 @@ You MUST output the customized resume and the cover letter in a single response,
 Format the output exactly as follows:
 
 ===RESUME_START===
-# [CANDIDATE NAME]
-[City, Province] | [Phone] | [Email] | [LinkedIn]
+\\documentclass[10pt,letterpaper]{article}
+\\usepackage[utf8]{inputenc}
+\\usepackage[margin=0.75in]{geometry}
+\\usepackage{xcolor}
+\\usepackage{hyperref}
 
-## PROFESSIONAL SUMMARY
-[Summary Text...]
+% Sans-serif font
+\\renewcommand{\\familydefault}{\\sfdefault}
 
-## CORE COMPETENCIES
-- [Skill 1] | [Skill 2] | [Skill 3]
-- [Skill 4] | [Skill 5] | [Skill 6]
-- [Skill 7] | [Skill 8] | [Skill 9]
+% Color definitions
+\\definecolor{primary}{HTML}{0F172A} % slate-900
+\\definecolor{secondary}{HTML}{1E293B} % slate-800
+\\definecolor{muted}{HTML}{64748b} % slate-500
+\\definecolor{rulecolor}{HTML}{E2E8F0} % slate-200
 
-## PROFESSIONAL EXPERIENCE
-**[Company Name]** - [City, Province/Country]
-*[Job Title]* | [Month Year] - [Month Year or Present]
-- [Achievement bullet 1 starting with active verb]
-- [Achievement bullet 2 starting with active verb]
+% Custom Section command without titlesec dependency
+\\renewcommand{\\section}[1]{%
+  \\vspace{12pt}%
+  \\noindent{\\color{primary}\\large\\bfseries\\uppercase{#1}}\\\\%
+  \\vspace{-6pt}%
+  {\\color{rulecolor}\\rule{\\linewidth}{0.8pt}}\\\\%
+  \\vspace{6pt}%
+}
 
-## EDUCATION
-**[Degree Name] in [Major]**
-[University/Institution Name], [City, Province/Country] | [Graduation Year]
+\\hypersetup{
+    colorlinks=true,
+    linkcolor=secondary,
+    urlcolor=secondary
+}
+
+\\begin{document}
+\\pagestyle{empty}
+
+\\begin{center}
+    {\\color{primary}\\Huge\\bfseries [CANDIDATE NAME]} \\\\ [0.5em]
+    {\\color{muted}\\small [City, Province] \\textbullet{} [Phone] \\textbullet{} [Email] \\textbullet{} \\href{[LinkedIn URL]}{[LinkedIn]}}
+\\end{center}
+
+\\section{Professional Summary}
+[Professional summary text here...]
+
+\\section{Core Competencies}
+\\noindent [Skill 1] \\textbullet{} [Skill 2] \\textbullet{} [Skill 3] \\textbullet{} [Skill 4] \\textbullet{} [Skill 5] \\textbullet{} [Skill 6] \\textbullet{} [Skill 7] \\textbullet{} [Skill 8] \\textbullet{} [Skill 9]
+
+\\section{Professional Experience}
+\\noindent \\textbf{[Company Name]} \\hfill {\\color{muted}\\textit{[City, Province/Country]}} \\\\
+\\textit{[Job Title]} \\hfill {\\color{muted}[Month Year] -- [Month Year or Present]}
+\\begin{itemize}
+    \\item [Achievement bullet 1 starting with active verb]
+    \\item [Achievement bullet 2 starting with active verb]
+\\end{itemize}
+
+\\section{Education}
+\\noindent \\textbf{[Degree Name] in [Major]} \\hfill {\\color{muted}[Graduation Year]} \\\\
+[University/Institution Name], [City, Province/Country]
+
+\\end{document}
 ===RESUME_END===
 
 ===LETTER_START===
-[Candidate Name]
-[City, Province] | [Phone] | [Email] | [LinkedIn]
+\\documentclass[10pt,letterpaper]{article}
+\\usepackage[utf8]{inputenc}
+\\usepackage[margin=0.75in]{geometry}
+\\usepackage{xcolor}
+\\usepackage{hyperref}
 
-[Current Date]
+% Sans-serif font
+\\renewcommand{\\familydefault}{\\sfdefault}
 
-Hiring Committee
-[Company Name]
-[Company Address or City, Province]
+% Color definitions
+\\definecolor{primary}{HTML}{0F172A}
+\\definecolor{secondary}{HTML}{1E293B}
+\\definecolor{muted}{HTML}{64748b}
 
-**RE: Application for [Job Title]**
+\\hypersetup{
+    colorlinks=true,
+    linkcolor=secondary,
+    urlcolor=secondary
+}
 
-Dear Hiring Committee,
+\\begin{document}
+\\pagestyle{empty}
 
-[Cover Letter Body...]
+\\begin{center}
+    {\\color{primary}\\Huge\\bfseries [CANDIDATE NAME]} \\\\ [0.5em]
+    {\\color{muted}\\small [City, Province] \\textbullet{} [Phone] \\textbullet{} [Email] \\textbullet{} \\href{[LinkedIn URL]}{[LinkedIn]}}
+\\end{center}
 
-Sincerely,
+\\vspace{12pt}
 
-[Candidate Name]
+\\noindent [Current Date] \\\\
+
+\\noindent \\textbf{Hiring Committee} \\\\
+[Company Name] \\\\
+[Company Address or City, Province] \\\\
+
+\\vspace{12pt}
+\\noindent \\textbf{RE: Application for [Job Title]}
+\\vspace{12pt}
+
+\\noindent Dear Hiring Committee,
+
+\\vspace{10pt}
+[Cover Letter Body Paragraph 1...]
+
+\\vspace{10pt}
+[Cover Letter Body Paragraph 2...]
+
+\\vspace{10pt}
+[Cover Letter Body Paragraph 3...]
+
+\\vspace{15pt}
+\\noindent Sincerely, \\\\
+\\\\
+\\noindent [Candidate Name]
+
+\\end{document}
 ===LETTER_END=== """
 
 # Settings management (storing credentials locally on disk)
@@ -873,96 +958,43 @@ def markdown_to_weasy_html(markdown_text, doc_type="resume"):
     """
     return html_page
 
-def generate_pdf_from_markdown(markdown_text, doc_type="resume"):
-    # If WeasyPrint is available, use it for premium page-layout rendering
-    if WEASYPRINT_AVAILABLE:
-        try:
-            html_page = markdown_to_weasy_html(markdown_text, doc_type=doc_type)
-            pdf_bytes = HTML(string=html_page).write_pdf()
-            return pdf_bytes
-        except Exception as e:
-            # Fall back to standard FPDF rendering below
-            pass
-
-    # Fallback to FPDF rendering below
-    # Download premium fonts if needed
-    download_fonts_if_needed()
+def generate_pdf_from_markdown(latex_code, doc_type="resume"):
+    import subprocess
+    import tempfile
+    import os
     
-    # Check if Roboto fonts exist on disk
-    font_dir = "fonts"
-    has_roboto = (
-        os.path.exists(os.path.join(font_dir, "Roboto-Regular.ttf")) and
-        os.path.exists(os.path.join(font_dir, "Roboto-Bold.ttf")) and
-        os.path.exists(os.path.join(font_dir, "Roboto-RegularItalic.ttf")) and
-        os.path.exists(os.path.join(font_dir, "Roboto-BoldItalic.ttf"))
-    )
-    
-    pdf = FPDF(orientation="P", unit="mm", format="letter")
-    pdf.set_margins(18, 18, 18)
-    
-    if has_roboto:
-        try:
-            pdf.add_font("Roboto", "", "fonts/Roboto-Regular.ttf")
-            pdf.add_font("Roboto", "B", "fonts/Roboto-Bold.ttf")
-            pdf.add_font("Roboto", "I", "fonts/Roboto-RegularItalic.ttf")
-            pdf.add_font("Roboto", "BI", "fonts/Roboto-BoldItalic.ttf")
-            font_family = "Roboto"
-        except Exception as e:
-            # Fallback to standard core fonts if loading fails
-            font_family = "helvetica" if doc_type == "resume" else "times"
-    else:
-        font_family = "helvetica" if doc_type == "resume" else "times"
-        
-    pdf.add_page()
-    pdf.set_auto_page_break(auto=True, margin=18)
-    
-    # Set default body font & color to slate-800 (#1e293b) for modern professional look
-    pdf.set_text_color(30, 41, 59)
-    pdf.set_font(font_family, size=10.5)
-    
-    # Set custom tag styles for headings with dark slate-900 color (#0f172a)
-    my_styles = {
-        "h1": FontFace(family=font_family, size_pt=18, emphasis="B", color="#0f172a"),
-        "h2": FontFace(family=font_family, size_pt=11.5, emphasis="B", color="#0f172a"),
-        "h3": FontFace(family=font_family, size_pt=10.5, emphasis="B", color="#0f172a")
-    }
-    
-    # Convert markdown to PDF-compatible HTML
-    html_content = markdown_to_fpdf_html(markdown_text, doc_type=doc_type)
-    
-    try:
-        if doc_type == "resume" and "<h2>" in html_content:
-            sections = html_content.split("<h2>")
-            # Write header section
-            pdf.write_html(sections[0], tag_styles=my_styles)
+    with tempfile.TemporaryDirectory() as temp_dir:
+        tex_path = os.path.join(temp_dir, "document.tex")
+        with open(tex_path, "w", encoding="utf-8") as f:
+            f.write(latex_code)
             
-            for section in sections[1:]:
-                parts = section.split("</h2>", 1)
-                heading_text = parts[0]
-                content = parts[1] if len(parts) > 1 else ""
-                
-                # Write heading
-                pdf.write_html(f"<h2>{heading_text}</h2>", tag_styles=my_styles)
-                
-                # Draw a clean horizontal line under heading using slate-200 color
-                current_y = pdf.get_y()
-                pdf.set_line_width(0.25)
-                pdf.set_draw_color(226, 232, 240)
-                pdf.line(18, current_y + 1, 215.9 - 18, current_y + 1)
-                
-                # Advance cursor past line
-                pdf.set_y(current_y + 3)
-                
-                # Write remaining content
-                pdf.write_html(content, tag_styles=my_styles)
+        try:
+            # Run pdflatex twice to resolve references and page layouts
+            for _ in range(2):
+                result = subprocess.run(
+                    ["pdflatex", "-interaction=nonstopmode", "document.tex"],
+                    cwd=temp_dir,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    timeout=15
+                )
+        except Exception as e:
+            st.error(f"LaTeX compiler execution failed: {e}. Please ensure texlive-latex-base is installed on the host.")
+            return None
+            
+        pdf_path = os.path.join(temp_dir, "document.pdf")
+        if os.path.exists(pdf_path):
+            with open(pdf_path, "rb") as f:
+                return f.read()
         else:
-            pdf.write_html(html_content, tag_styles=my_styles)
-            
-        pdf_bytes = pdf.output()
-        return pdf_bytes
-    except Exception as e:
-        st.error(f"Error compiling PDF: {e}")
-        return None
+            log_path = os.path.join(temp_dir, "document.log")
+            log_content = ""
+            if os.path.exists(log_path):
+                with open(log_path, "r", encoding="utf-8", errors="ignore") as lf:
+                    log_content = lf.read()
+            st.error("LaTeX compilation failed. See the pdflatex logs below:")
+            st.text_area("pdflatex compiler log output", value=log_content[:5000], height=300)
+            return None
 
 # Trigger Generation API Flow
 resume_content = st.session_state.get("resume_text", "")
@@ -994,37 +1026,31 @@ if st.session_state.get("tailored_resume"):
     st.markdown("---")
     st.markdown("### 🏆 3. Output Documents")
     
-    tab1, tab2, tab3 = st.tabs(["📄 Tailored Resume", "✉️ Cover Letter", "⚙️ Prompt Explorer"])
+    tab1, tab2, tab3 = st.tabs(["📄 Tailored Resume", "✉️ Tailored Cover Letter", "⚙️ Prompt Explorer"])
     
     with tab1:
-        resume_md = st.session_state["tailored_resume"]
+        resume_tex = st.session_state["tailored_resume"]
         
-        # Download actions
-        act_col1, act_col2, act_col3 = st.columns(3)
+        # Interactive Editor and Preview
+        st.markdown("#### 📝 LaTeX Code Preview & Editor")
+        edited_resume_tex = st.text_area("You can make quick edits directly in the LaTeX code below before exporting:", value=resume_tex, height=450, key="edit_resume_tex")
+        
+        # Compile and Download actions
+        act_col1, act_col2 = st.columns(2)
         with act_col1:
             st.download_button(
-                label="📥 Download Markdown",
-                data=resume_md,
-                file_name="tailored_resume.md",
-                mime="text/markdown",
-                key="download_resume_markdown",
+                label="📥 Download LaTeX Source (.tex)",
+                data=edited_resume_tex,
+                file_name="tailored_resume.tex",
+                mime="text/x-tex",
+                key="download_resume_tex",
                 use_container_width=True
             )
         with act_col2:
-            html_doc = f"<html><body style='font-family: Arial; padding: 40px;'>{markdown.markdown(resume_md)}</body></html>"
-            st.download_button(
-                label="📥 Download HTML",
-                data=html_doc,
-                file_name="tailored_resume.html",
-                mime="text/html",
-                key="download_resume_html",
-                use_container_width=True
-            )
-        with act_col3:
-            resume_pdf_data = generate_pdf_from_markdown(resume_md, doc_type="resume")
+            resume_pdf_data = generate_pdf_from_markdown(edited_resume_tex, doc_type="resume")
             if resume_pdf_data:
                 st.download_button(
-                    label="📥 Download PDF",
+                    label="📥 Download PDF Document",
                     data=bytes(resume_pdf_data),
                     file_name="tailored_resume.pdf",
                     mime="application/pdf",
@@ -1032,41 +1058,31 @@ if st.session_state.get("tailored_resume"):
                     use_container_width=True
                 )
             else:
-                st.error("Failed to generate PDF")
-
-        # Render the LaTeX-styled WeasyPrint HTML in a high-fidelity iframe preview
-        st.markdown("<br>", unsafe_allow_html=True)
-        resume_html_page = markdown_to_weasy_html(resume_md, doc_type="resume")
-        st.components.v1.html(resume_html_page, height=900, scrolling=True)
+                st.info("💡 Note: To print to PDF locally, make sure pdflatex is installed on your PATH. In production, Streamlit Cloud handles this automatically.")
 
     with tab2:
-        letter_md = st.session_state["tailored_letter"]
+        letter_tex = st.session_state["tailored_letter"]
         
-        act_col1, act_col2, act_col3 = st.columns(3)
+        # Interactive Editor and Preview
+        st.markdown("#### 📝 LaTeX Code Preview & Editor")
+        edited_letter_tex = st.text_area("You can make quick edits directly in the LaTeX code below before exporting:", value=letter_tex, height=450, key="edit_letter_tex")
+        
+        # Compile and Download actions
+        act_col1, act_col2 = st.columns(2)
         with act_col1:
             st.download_button(
-                label="📥 Download Markdown",
-                data=letter_md,
-                file_name="tailored_cover_letter.md",
-                mime="text/markdown",
-                key="download_letter_markdown",
+                label="📥 Download LaTeX Source (.tex)",
+                data=edited_letter_tex,
+                file_name="tailored_cover_letter.tex",
+                mime="text/x-tex",
+                key="download_letter_tex",
                 use_container_width=True
             )
         with act_col2:
-            html_letter = f"<html><body style='font-family: Georgia; padding: 40px; line-height: 1.5;'>{markdown.markdown(letter_md)}</body></html>"
-            st.download_button(
-                label="📥 Download HTML",
-                data=html_letter,
-                file_name="tailored_cover_letter.html",
-                mime="text/html",
-                key="download_letter_html",
-                use_container_width=True
-            )
-        with act_col3:
-            letter_pdf_data = generate_pdf_from_markdown(letter_md, doc_type="letter")
+            letter_pdf_data = generate_pdf_from_markdown(edited_letter_tex, doc_type="letter")
             if letter_pdf_data:
                 st.download_button(
-                    label="📥 Download PDF",
+                    label="📥 Download PDF Document",
                     data=bytes(letter_pdf_data),
                     file_name="tailored_cover_letter.pdf",
                     mime="application/pdf",
@@ -1074,12 +1090,7 @@ if st.session_state.get("tailored_resume"):
                     use_container_width=True
                 )
             else:
-                st.error("Failed to generate PDF")
-
-        # Render the LaTeX-styled WeasyPrint HTML in a high-fidelity iframe preview
-        st.markdown("<br>", unsafe_allow_html=True)
-        letter_html_page = markdown_to_weasy_html(letter_md, doc_type="letter")
-        st.components.v1.html(letter_html_page, height=900, scrolling=True)
+                st.info("💡 Note: To print to PDF locally, make sure pdflatex is installed on your PATH. In production, Streamlit Cloud handles this automatically.")
 
     with tab3:
         st.info("💡 Below is the exact prompt running behind the scenes. It sets the rules for ATS optimization, Canadian formatting, and strict truth preservation.")

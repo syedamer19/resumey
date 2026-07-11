@@ -4,4 +4,4 @@ requests
 python-dotenv
 markdown>=3.0.0
 fpdf2==2.7.9
-weasyprint<62.0
+
