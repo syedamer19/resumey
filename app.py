@@ -7,7 +7,7 @@ import io
 import unicodedata
 import markdown
 from pypdf import PdfReader
-from fpdf import FPDF
+from fpdf import FPDF, FontFace
 
 # Page Configuration
 st.set_page_config(
