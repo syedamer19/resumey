@@ -307,24 +307,28 @@ st.markdown("""
     
     /* Javascript-free Print media configurations */
     @media print {
-        [data-testid="stSidebar"],
-        [data-testid="stHeader"],
-        [data-testid="stToolbar"],
-        .stTabs,
-        .print-btn-wrapper,
-        button,
-        header,
-        .main > div:first-child {
-            display: none !important;
+        /* Hide all page content by default during print */
+        html, body, [data-testid="stAppViewContainer"], [data-testid="stVerticalBlock"], .main {
+            visibility: hidden !important;
+            background: white !important;
         }
         
+        /* Show only the print-only container and its child contents */
+        .print-only-container, .print-only-container * {
+            visibility: visible !important;
+        }
+        
+        /* Position the print container at the top left of the printed page */
         .print-only-container {
-            display: block !important;
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
             width: 100% !important;
-            padding: 0 !important;
-            margin: 0 !important;
+            display: block !important;
             background: white !important;
             color: black !important;
+            padding: 0 !important;
+            margin: 0 !important;
         }
     }
     
