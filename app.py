@@ -699,13 +699,58 @@ def markdown_to_fpdf_html(markdown_text, doc_type="resume"):
     
     return html
  
-def generate_pdf_from_markdown(markdown_text, doc_type="resume"):
-    # Decide on font and line heights
-    font_family = "helvetica" if doc_type == "resume" else "times"
+def download_fonts_if_needed():
+    font_dir = "fonts"
+    if not os.path.exists(font_dir):
+        os.makedirs(font_dir)
+        
+    font_urls = {
+        "Roboto-Regular.ttf": "https://cdn.jsdelivr.net/npm/roboto-fontface/fonts/roboto/Roboto-Regular.ttf",
+        "Roboto-Bold.ttf": "https://cdn.jsdelivr.net/npm/roboto-fontface/fonts/roboto/Roboto-Bold.ttf",
+        "Roboto-RegularItalic.ttf": "https://cdn.jsdelivr.net/npm/roboto-fontface/fonts/roboto/Roboto-RegularItalic.ttf",
+        "Roboto-BoldItalic.ttf": "https://cdn.jsdelivr.net/npm/roboto-fontface/fonts/roboto/Roboto-BoldItalic.ttf"
+    }
     
-    # Create FPDF instance
+    for filename, url in font_urls.items():
+        filepath = os.path.join(font_dir, filename)
+        if not os.path.exists(filepath):
+            try:
+                response = requests.get(url, timeout=10)
+                if response.status_code == 200:
+                    with open(filepath, "wb") as f:
+                        f.write(response.content)
+            except Exception as e:
+                pass
+
+def generate_pdf_from_markdown(markdown_text, doc_type="resume"):
+    # Download premium fonts if needed
+    download_fonts_if_needed()
+    
+    # Check if Roboto fonts exist on disk
+    font_dir = "fonts"
+    has_roboto = (
+        os.path.exists(os.path.join(font_dir, "Roboto-Regular.ttf")) and
+        os.path.exists(os.path.join(font_dir, "Roboto-Bold.ttf")) and
+        os.path.exists(os.path.join(font_dir, "Roboto-RegularItalic.ttf")) and
+        os.path.exists(os.path.join(font_dir, "Roboto-BoldItalic.ttf"))
+    )
+    
     pdf = FPDF(orientation="P", unit="mm", format="letter")
     pdf.set_margins(18, 18, 18)
+    
+    if has_roboto:
+        try:
+            pdf.add_font("Roboto", "", "fonts/Roboto-Regular.ttf")
+            pdf.add_font("Roboto", "B", "fonts/Roboto-Bold.ttf")
+            pdf.add_font("Roboto", "I", "fonts/Roboto-RegularItalic.ttf")
+            pdf.add_font("Roboto", "BI", "fonts/Roboto-BoldItalic.ttf")
+            font_family = "Roboto"
+        except Exception as e:
+            # Fallback to standard core fonts if loading fails
+            font_family = "helvetica" if doc_type == "resume" else "times"
+    else:
+        font_family = "helvetica" if doc_type == "resume" else "times"
+        
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=18)
     
