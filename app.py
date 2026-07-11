@@ -8,6 +8,14 @@ import unicodedata
 import markdown
 from pypdf import PdfReader
 from fpdf import FPDF, FontFace
+ 
+# Try to import WeasyPrint defensively
+WEASYPRINT_AVAILABLE = False
+try:
+    from weasyprint import HTML
+    WEASYPRINT_AVAILABLE = True
+except (ImportError, OSError):
+    pass
 
 # Page Configuration
 st.set_page_config(
@@ -722,7 +730,150 @@ def download_fonts_if_needed():
             except Exception as e:
                 pass
 
+def markdown_to_weasy_html(markdown_text, doc_type="resume"):
+    # Convert experience headers in markdown to HTML tables before running the markdown parser
+    if doc_type == "resume":
+        exp_pattern = r'\*\*([^\*]+)\*\*\s*-\s*([^\n\r]+)[\r\n]+\*([^\*]+)\*\s*\|\s*([^\n\r]+)'
+        
+        def replace_exp_with_table(match):
+            company = match.group(1).strip()
+            location = match.group(2).strip()
+            title = match.group(3).strip()
+            dates = match.group(4).strip()
+            return f'<table class="exp-table"><tr><td class="left-col"><span class="company">{company}</span></td><td class="right-col"><span class="location">{location}</span></td></tr><tr><td class="left-col"><span class="title">{title}</span></td><td class="right-col"><span class="dates">{dates}</span></td></tr></table>'
+            
+        sanitized_md = re.sub(exp_pattern, replace_exp_with_table, markdown_text)
+    else:
+        sanitized_md = markdown_text
+        
+    # Convert markdown to HTML
+    body_html = markdown.markdown(sanitized_md)
+    
+    # Center Contact Info (paragraphs containing pipe delimiter '|')
+    body_html = re.sub(r'<p>([^<]*\|[^<]*)</p>', r'<p class="contact">\1</p>', body_html)
+    
+    # Build full HTML page with embedded styling (Inter font for resume, Times for letter)
+    font_family = "'Inter', sans-serif" if doc_type == "resume" else "'Times New Roman', Times, serif"
+    
+    html_page = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <title>Document</title>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+            @page {{
+                size: letter;
+                margin: 18mm;
+            }}
+            body {{
+                font-family: {font_family};
+                color: #1e293b;
+                line-height: 1.45;
+                font-size: 10pt;
+                margin: 0;
+                padding: 0;
+            }}
+            h1 {{
+                font-size: 18pt;
+                font-weight: 700;
+                color: #0f172a;
+                text-align: center;
+                margin-top: 0;
+                margin-bottom: 4px;
+            }}
+            h2 {{
+                font-size: 11pt;
+                font-weight: 600;
+                color: #0f172a;
+                text-transform: uppercase;
+                border-bottom: 0.5pt solid #cbd5e1;
+                padding-bottom: 2px;
+                margin-top: 14px;
+                margin-bottom: 8px;
+            }}
+            p {{
+                margin-top: 0;
+                margin-bottom: 8px;
+                text-align: justify;
+            }}
+            p.contact {{
+                text-align: center;
+                font-size: 9pt;
+                color: #64748b;
+                margin-bottom: 14px;
+            }}
+            .exp-table {{
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 8px;
+                margin-bottom: 4px;
+            }}
+            .exp-table td {{
+                padding: 0;
+                vertical-align: top;
+            }}
+            .exp-table .left-col {{
+                width: 70%;
+                text-align: left;
+            }}
+            .exp-table .right-col {{
+                width: 30%;
+                text-align: right;
+            }}
+            .exp-table .company {{
+                font-weight: 700;
+                font-size: 10pt;
+                color: #0f172a;
+            }}
+            .exp-table .location {{
+                color: #64748b;
+                font-style: italic;
+                font-size: 9.5pt;
+            }}
+            .exp-table .title {{
+                font-style: italic;
+                font-size: 9.5pt;
+                color: #1e293b;
+            }}
+            .exp-table .dates {{
+                color: #64748b;
+                font-size: 9.5pt;
+            }}
+            ul {{
+                margin-top: 0;
+                margin-bottom: 8px;
+                padding-left: 20px;
+            }}
+            li {{
+                margin-bottom: 3px;
+                text-align: justify;
+            }}
+            strong {{
+                color: #0f172a;
+            }}
+        </style>
+    </head>
+    <body>
+        {body_html}
+    </body>
+    </html>
+    """
+    return html_page
+
 def generate_pdf_from_markdown(markdown_text, doc_type="resume"):
+    # If WeasyPrint is available, use it for premium page-layout rendering
+    if WEASYPRINT_AVAILABLE:
+        try:
+            html_page = markdown_to_weasy_html(markdown_text, doc_type=doc_type)
+            pdf_bytes = HTML(string=html_page).write_pdf()
+            return pdf_bytes
+        except Exception as e:
+            # Fall back to standard FPDF rendering below
+            pass
+
+    # Fallback to FPDF rendering below
     # Download premium fonts if needed
     download_fonts_if_needed()
     
