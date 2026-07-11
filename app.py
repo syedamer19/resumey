@@ -697,11 +697,8 @@ def markdown_to_fpdf_html(markdown_text, doc_type="resume"):
     # 6. Center Contact Info (paragraphs containing pipe delimiter '|')
     html = re.sub(r'<p>([^<]*\|[^<]*)</p>', r'<p align="center">\1</p>', html)
     
-    # 7. Add horizontal rules under all H2 headers for professional executive layout styling
-    html = re.sub(r'<h2>([^<]+)</h2>', r'<h2>\1</h2><hr>', html)
-    
     return html
-
+ 
 def generate_pdf_from_markdown(markdown_text, doc_type="resume"):
     # Decide on font and line heights
     font_family = "helvetica" if doc_type == "resume" else "times"
@@ -726,8 +723,33 @@ def generate_pdf_from_markdown(markdown_text, doc_type="resume"):
     html_content = markdown_to_fpdf_html(markdown_text, doc_type=doc_type)
     
     try:
-        # Render HTML to PDF
-        pdf.write_html(html_content, tag_styles=my_styles)
+        if doc_type == "resume" and "<h2>" in html_content:
+            sections = html_content.split("<h2>")
+            # Write header section
+            pdf.write_html(sections[0], tag_styles=my_styles)
+            
+            for section in sections[1:]:
+                parts = section.split("</h2>", 1)
+                heading_text = parts[0]
+                content = parts[1] if len(parts) > 1 else ""
+                
+                # Write heading
+                pdf.write_html(f"<h2>{heading_text}</h2>", tag_styles=my_styles)
+                
+                # Draw a clean horizontal line under heading
+                current_y = pdf.get_y()
+                pdf.set_line_width(0.2)
+                pdf.set_draw_color(180, 180, 180)
+                pdf.line(18, current_y + 1, 215.9 - 18, current_y + 1)
+                
+                # Advance cursor past line
+                pdf.set_y(current_y + 3)
+                
+                # Write remaining content
+                pdf.write_html(content, tag_styles=my_styles)
+        else:
+            pdf.write_html(html_content, tag_styles=my_styles)
+            
         pdf_bytes = pdf.output()
         return pdf_bytes
     except Exception as e:
