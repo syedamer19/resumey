@@ -660,114 +660,77 @@ def sanitize_text_for_pdf(text):
     encoded = normalized.encode('ascii', 'ignore')
     return encoded.decode('ascii')
 
-def print_formatted_line(pdf, text, is_bullet=False):
-    if is_bullet:
-        pdf.set_font("helvetica", style="", size=10.5)
-        pdf.write(5.5, " \xb7  ")
+def markdown_to_fpdf_html(markdown_text, doc_type="resume"):
+    # 1. Sanitize text for PDF first (ASCII/Latin-1 conversion)
+    sanitized_md = sanitize_text_for_pdf(markdown_text)
     
-    tokens = re.split(r'(\*\*.*?\*\*|\*.*?\*)', text)
-    for token in tokens:
-        if not token:
-            continue
-        if token.startswith("**") and token.endswith("**"):
-            fragment = token[2:-2]
-            pdf.set_font("helvetica", style="B", size=10.5)
-            pdf.write(5.5, fragment)
-        elif token.startswith("*") and token.endswith("*"):
-            fragment = token[1:-1]
-            pdf.set_font("helvetica", style="I", size=10.5)
-            pdf.write(5.5, fragment)
-        else:
-            pdf.set_font("helvetica", style="", size=10.5)
-            pdf.write(5.5, token)
-    pdf.ln(5.5)
-
-def print_experience_header(pdf, line):
-    company_match = re.match(r'^\*\*([^\*]+)\*\*\s*-\s*(.+)$', line)
-    title_match = re.match(r'^\*([^\*]+)\*\s*\|\s*(.+)$', line)
+    # 2. For Resumes: Convert experience blocks in markdown to HTML tables before running the markdown parser!
+    if doc_type == "resume":
+        # Experience headers pattern:
+        # **Company** - Location
+        # *Title* | Dates
+        exp_pattern = r'\*\*([^\*]+)\*\*\s*-\s*([^\n\r]+)[\r\n]+\*([^\*]+)\*\s*\|\s*([^\n\r]+)'
+        
+        def replace_exp_with_table(match):
+            company = match.group(1).strip()
+            location = match.group(2).strip()
+            title = match.group(3).strip()
+            dates = match.group(4).strip()
+            return f"""
+            <table width="100%">
+                <tr>
+                    <td align="left"><b>{company}</b></td>
+                    <td align="right"><i>{location}</i></td>
+                </tr>
+                <tr>
+                    <td align="left"><i>{title}</i></td>
+                    <td align="right">{dates}</td>
+                </tr>
+            </table>
+            """
+        sanitized_md = re.sub(exp_pattern, replace_exp_with_table, sanitized_md)
+        
+    # 3. Convert markdown to HTML
+    html = markdown.markdown(sanitized_md)
     
-    if company_match:
-        company = company_match.group(1).strip()
-        location = company_match.group(2).strip()
-        pdf.set_font("helvetica", style="B", size=10.5)
-        pdf.write(5.5, company)
-        
-        pdf.set_font("helvetica", style="I", size=10.5)
-        loc_width = pdf.get_string_width(location)
-        pdf.set_x(215.9 - 18 - loc_width)
-        pdf.write(5.5, location)
-        pdf.ln(5.5)
-        return True
-    elif title_match:
-        title = title_match.group(1).strip()
-        dates = title_match.group(2).strip()
-        pdf.set_font("helvetica", style="I", size=10.5)
-        pdf.write(5.5, title)
-        
-        pdf.set_font("helvetica", style="", size=10.5)
-        dates_width = pdf.get_string_width(dates)
-        pdf.set_x(215.9 - 18 - dates_width)
-        pdf.write(5.5, dates)
-        pdf.ln(5.5)
-        return True
-    return False
+    # 4. Replace <strong> with <b>, <em> with <i> for FPDF HTML parser safety
+    html = html.replace("<strong>", "<b>").replace("</strong>", "</b>")
+    html = html.replace("<em>", "<i>").replace("</em>", "</i>")
+    
+    # 5. Center Candidate Name (h1)
+    html = html.replace("<h1>", '<h1 align="center">')
+    
+    # 6. Center Contact Info (paragraphs containing pipe delimiter '|')
+    html = re.sub(r'<p>([^<]*\|[^<]*)</p>', r'<p align="center">\1</p>', html)
+    
+    return html
 
 def generate_pdf_from_markdown(markdown_text, doc_type="resume"):
-    # Sanitize markdown input first to prevent FPDFUnicodeEncodingException
-    markdown_text = sanitize_text_for_pdf(markdown_text)
+    # Decide on font and line heights
+    font_family = "helvetica" if doc_type == "resume" else "times"
     
+    # Create FPDF instance
     pdf = FPDF(orientation="P", unit="mm", format="letter")
     pdf.set_margins(18, 18, 18)
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=18)
     
-    lines = markdown_text.split("\n")
+    # Set default body font
+    pdf.set_font(font_family, size=10.5)
     
-    for line in lines:
-        line = line.strip()
-        if not line:
-            pdf.ln(2)
-            continue
-            
-        # Title
-        if line.startswith("# "):
-            title = line[2:].strip()
-            pdf.set_font("helvetica", style="B", size=18)
-            pdf.cell(0, 10, txt=title, ln=True, align="C")
-            pdf.set_font("helvetica", style="", size=10.5)
-            
-        # Section Header
-        elif line.startswith("## "):
-            section = line[3:].strip()
-            pdf.ln(2)
-            pdf.set_font("helvetica", style="B", size=11.5)
-            pdf.cell(0, 6, txt=section.upper(), ln=True, align="L")
-            # Bottom border line
-            pdf.set_line_width(0.3)
-            current_y = pdf.get_y()
-            pdf.line(18, current_y, 215.9 - 18, current_y)
-            pdf.ln(2)
-            pdf.set_font("helvetica", style="", size=10.5)
-            
-        # Contact Header (contains | and near top of page)
-        elif "|" in line and pdf.get_y() < 60:
-            clean_line = line.replace("**", "").replace("*", "")
-            pdf.set_font("helvetica", style="", size=9.5)
-            pdf.cell(0, 5.5, txt=clean_line, ln=True, align="C")
-            pdf.set_font("helvetica", style="", size=10.5)
-            
-        # Bullet point
-        elif line.startswith("- ") or line.startswith("* "):
-            bullet_text = line[2:].strip()
-            print_formatted_line(pdf, bullet_text, is_bullet=True)
-            
-        # Professional Experience Headers
-        else:
-            if doc_type == "resume" and print_experience_header(pdf, line):
-                continue
-            print_formatted_line(pdf, line)
-            
+    # Set custom tag styles for headings
+    my_styles = {
+        "h1": FontFace(family=font_family, size_pt=18, emphasis="B"),
+        "h2": FontFace(family=font_family, size_pt=11.5, emphasis="B"),
+        "h3": FontFace(family=font_family, size_pt=10.5, emphasis="B")
+    }
+    
+    # Convert markdown to PDF-compatible HTML
+    html_content = markdown_to_fpdf_html(markdown_text, doc_type=doc_type)
+    
     try:
+        # Render HTML to PDF
+        pdf.write_html(html_content, tag_styles=my_styles)
         pdf_bytes = pdf.output()
         return pdf_bytes
     except Exception as e:
