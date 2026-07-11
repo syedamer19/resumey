@@ -655,6 +655,7 @@ if st.session_state.get("tailored_resume"):
                 data=resume_md,
                 file_name="tailored_resume.md",
                 mime="text/markdown",
+                key="download_resume_markdown",
                 use_container_width=True
             )
         with act_col2:
@@ -664,6 +665,7 @@ if st.session_state.get("tailored_resume"):
                 data=html_doc,
                 file_name="tailored_resume.html",
                 mime="text/html",
+                key="download_resume_html",
                 use_container_width=True
             )
         with act_col3:
@@ -708,6 +710,7 @@ if st.session_state.get("tailored_resume"):
                 data=letter_md,
                 file_name="tailored_cover_letter.md",
                 mime="text/markdown",
+                key="download_letter_markdown",
                 use_container_width=True
             )
         with act_col2:
@@ -717,6 +720,7 @@ if st.session_state.get("tailored_resume"):
                 data=html_letter,
                 file_name="tailored_cover_letter.html",
                 mime="text/html",
+                key="download_letter_html",
                 use_container_width=True
             )
         with act_col3:
