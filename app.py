@@ -710,6 +710,16 @@ def parse_outputs(raw_text):
             resume = raw_text
             letter = raw_text
             
+    # Clean up markdown code block wrapping (e.g. ```latex ... ```)
+    def clean_latex(text):
+        text = text.strip()
+        text = re.sub(r'^```(?:latex)?\s*', '', text, flags=re.IGNORECASE)
+        text = re.sub(r'\s*```$', '', text)
+        return text.strip()
+        
+    resume = clean_latex(resume)
+    letter = clean_latex(letter)
+            
     return resume, letter
 
 # Regex Experience Block Formatter
